@@ -1,0 +1,1 @@
+{"id":"e27e9dfd-f1df-4236-a143-5a60517b9b1a","name":"production","values":[{"key":"baseUrl","value":"http://34.101.58.40:3000","enabled":true,"type":"default"},{"key":"jwtToken","value":"","enabled":true,"type":"any"}]}

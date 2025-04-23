@@ -1,5 +1,9 @@
-import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import * as dotenv from "dotenv";
+import { HardhatUserConfig } from "hardhat/config";
+
+// Load variabel dari .env
+dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -17,12 +21,17 @@ const config: HardhatUserConfig = {
       url: "http://localhost:8545",
     },
     besu: {
-      url: "http://192.168.11.36:8545",
-      accounts: ["8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63"],
+      url: process.env.BESU_URL || "http://localhost:8545",
+      accounts: process.env.BESU_PRIVATE_KEY
+        ? [process.env.BESU_PRIVATE_KEY]
+        : [],
       gasPrice: 0,
       gas: 0x1ffffffffffffe,
-      chainId: 1337,
+      chainId: process.env.BESU_CHAIN_ID
+        ? Number(process.env.BESU_CHAIN_ID)
+        : undefined,
     },
   },
 };
+
 export default config;

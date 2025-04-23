@@ -1,6 +1,10 @@
+import axios from "axios";
 import { and, desc, eq, like, or } from "drizzle-orm";
+import * as fs from "fs";
+import path from "path";
 import { db } from "../drizzle/db.js";
 import { TopupTable, UserTable, WalletTable } from "../drizzle/schema.js";
+import { walletServiceUrl } from "../main.js";
 import { getUserById, updateUserStatus } from "./user.js";
 import {
   createWallet,
@@ -8,11 +12,6 @@ import {
   getWalletSaldoByUserId,
   getWalletWajibByUserId,
 } from "./wallet.js";
-import axios from "axios";
-import { walletServiceUrl } from "../main.js";
-import path from "path";
-import * as fs from "fs";
-import Response from 'express';
 
 export async function getAllTopUp(search?: string) {
   const query = db
@@ -419,7 +418,11 @@ export async function payTopup(
       Buffer.from(`\r\n--${boundary}--\r\n`)
     );
 
-    const formData = Buffer.concat(formParts);
+    const formData = Buffer.concat(
+      formParts.map((buffer) => {
+        return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.length);
+      })
+    );
 
     const walletServiceUrl = process.env.WALLET_URL || "http://localhost:3001";
     await axios.post(`${walletServiceUrl}/topup/create`, formData, {
@@ -437,14 +440,14 @@ export async function payTopup(
 }
 
 export async function accTopup(id: string): Promise<{ message: string }> {
-    const tes = await axios.get(`${walletServiceUrl}/topup/${id}`);
-    console.log(tes);
-    const topup = await axios.put(`${walletServiceUrl}/topup/acc/${id}`);
-    if (topup.status !== 200) {
-      const error = new Error("Failed to update topup status");
-      (error as any).statusCode = 500;
-      throw error;
-    }
+  const tes = await axios.get(`${walletServiceUrl}/topup/${id}`);
+  console.log(tes);
+  const topup = await axios.put(`${walletServiceUrl}/topup/acc/${id}`);
+  if (topup.status !== 200) {
+    const error = new Error("Failed to update topup status");
+    (error as any).statusCode = 500;
+    throw error;
+  }
 
   return { message: "Topup has been confirmed" };
 }
@@ -514,7 +517,11 @@ export async function accWithdrawSaldo(
       Buffer.from(`\r\n--${boundary}--\r\n`)
     );
 
-    const formData = Buffer.concat(formParts);
+    const formData = Buffer.concat(
+      formParts.map((buffer) => {
+        return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.length);
+      })
+    );
 
     const response = await axios.put(
       `${walletServiceUrl}/topup/withdraw/${id}`,

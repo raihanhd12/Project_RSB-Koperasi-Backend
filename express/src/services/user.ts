@@ -1,4 +1,7 @@
-import { and, desc, eq, like } from "drizzle-orm";
+import axios from "axios";
+import { desc, eq, like } from "drizzle-orm";
+import * as fs from "fs";
+import path from "path";
 import { db } from "../drizzle/db.js";
 import {
   SignatureAdminTable,
@@ -6,12 +9,8 @@ import {
   UserTable,
   WalletTable,
 } from "../drizzle/schema.js";
-import { sendTextWA } from "./baileys.js";
-import axios from "axios";
-import dotenv from "dotenv";
-import * as fs from "fs";
-import path from 'path';
 import { walletServiceUrl } from "../main.js";
+import { sendTextWA } from "./baileys.js";
 
 export async function getAllUser(
   search?: string,
@@ -334,41 +333,63 @@ export async function upgradeUserToPlatinum(
       pembayaranWajib + (nominal ? parseInt(nominal.toString(), 10) : 0);
 
     const absoluteFilePath = path.join(__dirname, "../../assets", filePath);
-    
+
     const fileContent = fs.readFileSync(absoluteFilePath);
 
-    const boundary = '--------------------------' + Date.now().toString(16);
-    
+    const boundary = "--------------------------" + Date.now().toString(16);
+
     let formParts = [];
-    
+
     formParts.push(
-      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="id_wallet"\r\n\r\n${walletSaldo}\r\n`),
-      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="nama"\r\n\r\n${user.nama}\r\n`),
-      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="nama_bank"\r\n\r\n${topUp.nama_bank}\r\n`),
-      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="no_rekening"\r\n\r\n${topUp.no_rekening}\r\n`),
-      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="nama_pemilik_rekening"\r\n\r\n${topUp.nama_pemilik_rekening}\r\n`),
-      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="nominal"\r\n\r\n${nominalSetor}\r\n`),
-      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="jenis"\r\n\r\nUPGRADE USER\r\n`),
-      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="status"\r\n\r\nMENUNGGU KONFIRMASI\r\n`)
+      Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="id_wallet"\r\n\r\n${walletSaldo}\r\n`
+      ),
+      Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="nama"\r\n\r\n${user.nama}\r\n`
+      ),
+      Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="nama_bank"\r\n\r\n${topUp.nama_bank}\r\n`
+      ),
+      Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="no_rekening"\r\n\r\n${topUp.no_rekening}\r\n`
+      ),
+      Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="nama_pemilik_rekening"\r\n\r\n${topUp.nama_pemilik_rekening}\r\n`
+      ),
+      Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="nominal"\r\n\r\n${nominalSetor}\r\n`
+      ),
+      Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="jenis"\r\n\r\nUPGRADE USER\r\n`
+      ),
+      Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="status"\r\n\r\nMENUNGGU KONFIRMASI\r\n`
+      )
     );
 
     const fileName = path.basename(absoluteFilePath);
     formParts.push(
-      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="bukti_pembayaran"; filename="${fileName}"\r\nContent-Type: image/png\r\n\r\n`),
+      Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="bukti_pembayaran"; filename="${fileName}"\r\nContent-Type: image/png\r\n\r\n`
+      ),
       fileContent,
       Buffer.from(`\r\n--${boundary}--\r\n`)
     );
 
-    const formData = Buffer.concat(formParts);
+    const formData = Buffer.concat(
+      formParts.map((buffer) => {
+        return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.length);
+      })
+    );
 
     const createTopup = await axios.post(
       `${walletUrl}/topup/create`,
       formData,
       {
         headers: {
-          'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          'Content-Length': formData.length
-        }
+          "Content-Type": `multipart/form-data; boundary=${boundary}`,
+          "Content-Length": formData.length,
+        },
       }
     );
 
@@ -391,7 +412,9 @@ export async function accUpgradeUserToPlatinum(id: string) {
       (error as any).statusCode = 404;
       throw error;
     }
-    const wallet = await axios.get(`${walletServiceUrl}/wallet/${topup.data.data[0].topup.id_wallet}`);
+    const wallet = await axios.get(
+      `${walletServiceUrl}/wallet/${topup.data.data[0].topup.id_wallet}`
+    );
     if (!wallet) {
       const error = new Error("Wallet not found");
       (error as any).statusCode = 404;

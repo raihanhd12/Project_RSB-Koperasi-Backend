@@ -2,7 +2,7 @@
 
 ## Configuration
 
-Go to `services/smartcontract` directory
+Go to `backend/services/smartcontract` directory
 
 Instalation dependencies
 
@@ -18,7 +18,7 @@ Compile
 npx hardhat compile
 ```
 
-Copy abi in `artifacts/contracts/ProjectToken.sol/ProjectToken.json` to `contractABI.json` in `services/backend` directory
+Copy abi in `artifacts/contracts/ProjectToken.sol/ProjectToken.json` to `contractABI.json` in `backend/express` directory
 
 Run localhost network hardhat (network blockchain for development)
 

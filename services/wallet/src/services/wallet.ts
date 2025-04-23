@@ -1,9 +1,14 @@
-import { WalletTable } from "../drizzle/schema.js";
+import { and, eq } from "drizzle-orm";
 import { db } from "../drizzle/db.js";
-import { and, eq, sum } from "drizzle-orm";
+import { WalletTable } from "../drizzle/schema.js";
 
 export async function getWalletById(id: string) {
-  const wallet = await db.select().from(WalletTable).where(eq(WalletTable.id, id)).limit(1).execute();
+  const wallet = await db
+    .select()
+    .from(WalletTable)
+    .where(eq(WalletTable.id, id))
+    .limit(1)
+    .execute();
   if (!wallet[0]) {
     const error = new Error("Wallet not found");
     (error as any).statusCode = 404;
@@ -42,7 +47,11 @@ export async function getTotalWalletSaldoByUserId(id_user: string) {
 }
 
 export async function createWallet(wallet: any) {
-  const newWallet = await db.insert(WalletTable).values(wallet).returning({ id: WalletTable.id }).execute();
+  const newWallet = await db
+    .insert(WalletTable)
+    .values(wallet)
+    .returning({ id: WalletTable.id })
+    .execute();
   return newWallet[0];
 }
 
@@ -52,7 +61,11 @@ export async function updateWalletById(wallet: any, id: string) {
     ...wallet,
     saldo: wallet.saldo ? wallet.saldo : existingWallet.saldo,
   };
-  await db.update(WalletTable).set(updatedData).where(eq(WalletTable.id, id)).execute();
+  await db
+    .update(WalletTable)
+    .set(updatedData)
+    .where(eq(WalletTable.id, id))
+    .execute();
 }
 
 export async function deleteWalletById(id: string) {

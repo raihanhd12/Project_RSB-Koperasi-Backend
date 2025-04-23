@@ -1,27 +1,27 @@
-import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
+import { ethers } from "ethers";
+import express, { NextFunction, Request, Response } from "express";
+import fs from "fs";
+import path from "path";
+import swaggerUi from "swagger-ui-express";
+import { configureAxiosInterceptor } from "./middlewares/api-key.js";
 import authRouter from "./routes/auth.js";
-import userRouter from "./routes/user.js";
-import projectCategoryRouter from "./routes/project-category.js";
-import projectRouter from "./routes/project.js";
-import wilayahRouter from "./routes/wilayah.js";
-import projectReportRouter from "./routes/project-report.js";
-import topupRouter from "./routes/topup.js";
-import projectTokenRouter from "./routes/project-token.js";
-import mutationRouter from "./routes/mutation.js";
+import whatsappRouter from "./routes/baileys.js";
 import chartProjectRouter from "./routes/chart-project.js";
 import chartTokenRouter from "./routes/chart-token.js";
-import historyTokenRouter from "./routes/history-token.js";
-import historyProjectRouter from "./routes/history-project.js";
-import whatsappRouter from "./routes/baileys.js";
-import projectWalletRouter from "./routes/project-wallet.js";
 import historyProjectWalletRouter from "./routes/history-project-wallet.js";
+import historyProjectRouter from "./routes/history-project.js";
+import historyTokenRouter from "./routes/history-token.js";
+import mutationRouter from "./routes/mutation.js";
+import projectCategoryRouter from "./routes/project-category.js";
+import projectReportRouter from "./routes/project-report.js";
+import projectTokenRouter from "./routes/project-token.js";
+import projectWalletRouter from "./routes/project-wallet.js";
+import projectRouter from "./routes/project.js";
+import topupRouter from "./routes/topup.js";
 import transactionRouter from "./routes/transaction.js";
-import swaggerUi from "swagger-ui-express";
-import { ethers } from "ethers";
-import path from "path";
-import fs from "fs";
-import { configureAxiosInterceptor } from "./middlewares/api-key.js";
+import userRouter from "./routes/user.js";
+import wilayahRouter from "./routes/wilayah.js";
 
 if (!process.env.API_URL) {
   throw new Error("Api Url is not defined in the environment variables.");
@@ -30,9 +30,12 @@ if (!process.env.PRIVATE_KEY) {
   throw new Error("Private key is not defined in the environment variables.");
 }
 if (!process.env.CONTRACT_ADDRESS) {
-  throw new Error("Contract address is not defined in the environment variables.");
+  throw new Error(
+    "Contract address is not defined in the environment variables."
+  );
 }
-export const walletServiceUrl: string = process.env.WALLET_URL || "http://localhost:3001";
+export const walletServiceUrl: string =
+  process.env.WALLET_URL || "http://localhost:3001";
 export const walletServiceApiKey: any = process.env.API_KEY;
 const apiUrl: string = process.env.API_URL;
 const privateKey: string = process.env.PRIVATE_KEY;

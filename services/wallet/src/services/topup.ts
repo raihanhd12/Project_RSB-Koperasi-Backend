@@ -1,10 +1,19 @@
-import { TopupTable, WalletTable } from "../drizzle/schema.js";
+import { desc, eq } from "drizzle-orm";
 import { db } from "../drizzle/db.js";
-import { and, desc, eq } from "drizzle-orm";
-import { getWalletById, getWalletSaldoByUserId, updateWalletById } from "./wallet.js";
+import { TopupTable, WalletTable } from "../drizzle/schema.js";
+import {
+  getWalletById,
+  getWalletSaldoByUserId,
+  updateWalletById,
+} from "./wallet.js";
 
 export async function getAllTopUp() {
-  const topUp = await db.select().from(TopupTable).innerJoin(WalletTable, eq(TopupTable.id_wallet, WalletTable.id)).orderBy(desc(TopupTable.created_at)).execute();
+  const topUp = await db
+    .select()
+    .from(TopupTable)
+    .innerJoin(WalletTable, eq(TopupTable.id_wallet, WalletTable.id))
+    .orderBy(desc(TopupTable.created_at))
+    .execute();
   if (!topUp || topUp.length === 0) {
     const error = new Error("No topups found");
     (error as any).statusCode = 404;
@@ -14,7 +23,13 @@ export async function getAllTopUp() {
 }
 
 export async function getTopupById(id: string) {
-  const topup = await db.select().from(TopupTable).innerJoin(WalletTable, eq(TopupTable.id_wallet, WalletTable.id)).where(eq(TopupTable.id, id)).orderBy(desc(TopupTable.created_at)).execute();
+  const topup = await db
+    .select()
+    .from(TopupTable)
+    .innerJoin(WalletTable, eq(TopupTable.id_wallet, WalletTable.id))
+    .where(eq(TopupTable.id, id))
+    .orderBy(desc(TopupTable.created_at))
+    .execute();
   if (!topup || topup.length === 0) {
     const error = new Error("Topup not found");
     (error as any).statusCode = 404;
@@ -49,7 +64,12 @@ export async function deleteTopUpById(id: string) {
 }
 
 export async function getWithdrawSaldo() {
-  const topUp = await db.select().from(TopupTable).where(eq(TopupTable.jenis, "PENARIKAN SALDO")).orderBy(desc(TopupTable.created_at)).execute();
+  const topUp = await db
+    .select()
+    .from(TopupTable)
+    .where(eq(TopupTable.jenis, "PENARIKAN SALDO"))
+    .orderBy(desc(TopupTable.created_at))
+    .execute();
   if (!topUp || topUp.length === 0) {
     const error = new Error("No withdraw saldo found");
     (error as any).statusCode = 404;
@@ -61,9 +81,16 @@ export async function getWithdrawSaldo() {
 export async function accTopUp(id: string) {
   const data = await getTopupById(id);
   if (data[0].topup.status === "MENUNGGU KONFIRMASI") {
-    await db.update(TopupTable).set({ status: "SUKSES" }).where(eq(TopupTable.id, id)).execute();
+    await db
+      .update(TopupTable)
+      .set({ status: "SUKSES" })
+      .where(eq(TopupTable.id, id))
+      .execute();
     const wallet = await getWalletById(data[0].topup.id_wallet);
-    await updateWalletById({ saldo: wallet.saldo + data[0].topup.nominal }, data[0].topup.id_wallet);
+    await updateWalletById(
+      { saldo: wallet.saldo + data[0].topup.nominal },
+      data[0].topup.id_wallet
+    );
   } else {
     const error = new Error("Topup already approved");
     (error as any).statusCode = 400;
@@ -74,7 +101,11 @@ export async function accTopUp(id: string) {
 export async function rejectTopUp(id: string) {
   const data = await getTopupById(id);
   if (data[0].topup.status === "MENUNGGU KONFIRMASI") {
-    await db.update(TopupTable).set({ status: "GAGAL" }).where(eq(TopupTable.id, id)).execute();
+    await db
+      .update(TopupTable)
+      .set({ status: "GAGAL" })
+      .where(eq(TopupTable.id, id))
+      .execute();
   } else {
     const error = new Error("Topup already rejected");
     (error as any).statusCode = 400;
